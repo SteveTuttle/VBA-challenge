@@ -1,0 +1,120 @@
+Sub StockMarketTicker()
+    
+    'Declare the Worksheet variables
+        Dim row As Double
+        Dim rowCount As Long
+        Dim startingRow As Double
+        Dim endingRow As Double
+        Dim nextRow As Integer
+        Dim totalStockVolume As Double
+        
+        Dim greatestTotalStockVolumeTicker As String
+        Dim greatestTotalStockVolumeValue As Double
+        Dim greatestPercentIncreaseTicker As String
+        Dim greatestPercentIncreaseValue As Double
+        Dim greatestPercentDecreaseTicker As String
+        Dim greatestPercentDecreaseValue As Double
+        Dim ws As Worksheet
+    
+    'Loop through all sheets
+        'Set ws = ActiveSheet
+        For Each ws In Sheets
+    
+        totalStockVolume = 0
+        openingPrice = 0
+        closingPrice = 0
+        greatestTotalStockVolumeTicker = ""
+        greatestTotalStockVolumeValue = 0
+        nextRow = 2
+
+    'Colomn header & ticker Range(s)
+        ws.Range("I1").Value = "Ticker"
+        ws.Range("J1").Value = "Yearly Change"
+        ws.Range("K1").Value = "Percent Change"
+        ws.Range("L1").Value = "Total Stock Volume"
+        
+        ws.Range("P1").Value = "Ticker"
+        ws.Range("Q1").Value = "Value"
+        ws.Range("O2").Value = "Greatest % Increase"
+        ws.Range("O3").Value = "Greatest % Decrease"
+        ws.Range("O4").Value = "Greatest Total Volume"
+
+    
+    'Find the row number of the last row within dataset
+        rowCount = ws.Cells(ws.Rows.Count, 1).End(xlUp).row
+        'Debug.Print("Row Count = " & rowCount)
+
+    'Loop through all row(s) in dataset
+        For row = 2 To rowCount
+
+    'Find the Ticker name of Stock metrics in data
+        If ws.Cells(row - 1, 1).Value <> ws.Cells(row, 1).Value Then
+            startingRow = row
+            totalStockVolume = 0
+            openingPrice = ws.Cells(row, 3).Value
+        End If
+    'Calculate the total volume of Stock between 1st & last rows in the data
+        totalStockVolume = totalStockVolume + ws.Cells(row, 7).Value
+    'Calculate the Ticker name & yearly change for Stock metrics in data
+        If ws.Cells(row + 1, 1).Value <> ws.Cells(row, 1).Value Then
+            endingRow = row
+            closingPrice = ws.Cells(row, 6).Value
+            ws.Cells(nextRow, 9).Value = ws.Cells(row, 1).Value
+            ws.Cells(nextRow, 10).Value = closingPrice - openingPrice
+        'applying conditional formatting based on positive, negative, or nuetral outcomes
+            If closingPrice > openingPrice Then
+                ws.Cells(nextRow, 10).Interior.Color = vbGreen
+            ElseIf closingPrice < openingPrice Then
+                ws.Cells(nextRow, 10).Interior.Color = vbRed
+            Else
+                ws.Cells(nextRow, 10).Interior.Color = vbYellow
+            End If
+        'the next lines calculate the Percent Change(+ / -) Value in stock from open to close
+            ws.Cells(nextRow, 11).Value = (closingPrice - openingPrice) / openingPrice
+            'format % change value column as percent
+                ws.Cells(nextRow, 11).NumberFormat = "0.00%"
+            If (closingPrice - openingPrice) / openingPrice > greatestPercentIncreaseValue Then
+                greatestPercentIncreaseValue = (closingPrice - openingPrice) / openingPrice
+                greatestPercentIncreaseTicker = ws.Cells(row, 1).Value
+                
+            End If
+            If (closingPrice - openingPrice) / openingPrice < greatestPercentDecreaseValue Then
+                greatestPercentDecreaseValue = (closingPrice - openingPrice) / openingPrice
+                greatestPercentDecreaseTicker = ws.Cells(row, 1).Value
+                                
+            End If
+        
+            If totalStockVolume > greatestTotalStockVolumeValue Then
+                greatestTotalStockVolumeTicker = ws.Cells(row, 1).Value
+                greatestTotalStockVolumeValue = totalStockVolume
+            End If
+
+        'Calculate Total stock volume
+            ws.Cells(nextRow, 12).Value = totalStockVolume
+        
+        'Go to nextRow
+            nextRow = nextRow + 1
+            
+        End If
+    
+    Next row
+    
+    'Ticker values
+        ws.Range("P4").Value = greatestTotalStockVolumeTicker
+        ws.Range("Q4").Value = greatestTotalStockVolumeValue
+        ws.Range("P2").Value = greatestPercentIncreaseTicker
+        ws.Range("Q2").Value = greatestPercentIncreaseValue
+        ws.Range("P3").Value = greatestPercentDecreaseTicker
+        ws.Range("Q3").Value = greatestPercentDecreaseValue
+      
+    'format greatest % increase value as percent
+            ws.Range("Q2").NumberFormat = "0.00%"
+     'format greatest % decrease value as percent
+            ws.Range("Q3").NumberFormat = "0.00%"
+    
+    
+    Next ws
+    
+    
+    
+End Sub
